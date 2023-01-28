@@ -39,6 +39,16 @@ def get_hit_sprite(hits_dict):
         return hit[0]
 
 
+def draw_hp(screen, x, y, hp_width, hp_height, player):
+    green = "#32CD32"                               # Зеленый цвет
+    white = "#FFFFFF"                               # Белый цвет
+    rect = pygame.Rect(x, y, hp_width, hp_height)   # Создаем рамку
+    fill = (player.hp / player.max_hp) * hp_width   # Считаем ширину полосы hp
+    fill_rect = pygame.Rect(x, y, fill, hp_height)  # Cоздаем полосу для hp
+    pygame.draw.rect(screen, green, fill_rect)      # Рисуем полосу для hp
+    pygame.draw.rect(screen, white, rect, 1)        # Рисуем рамку
+
+
 all_sprites = pygame.sprite.Group()                 # Создаем группу для спрайтов
 mobs_sprites = pygame.sprite.Group()                # Создаем группу для спрайтов мобов
 bullets_sprites = pygame.sprite.Group()             # Создаем группу для спрайтов пуль
@@ -84,17 +94,26 @@ while run:                                          # Начинаем беск�
                 all_sprites.add(bullet)             # Добавляем пулю ко всем спрайтам
                 bullets_sprites.add(bullet)         # Добавляем пулю ко всем пулям
 
-    shots = pygame.sprite.groupcollide(bullets_sprites, mobs_sprites, True, True)
+    shots = pygame.sprite.groupcollide(bullets_sprites, mobs_sprites, True, False)
     if shots:
         sprite = get_hit_sprite(shots)              # Получаем спрайт из второй группы
-        sprite.snd_expl.play()                      # Воспроизводим звук скрежета
+        sprite.hp -= 30                             # Отнимаем у моба 30 единиц здоровья
+        if sprite.hp <= 0:                          # Если здоровья не осталось
+            sprite.snd_expl.play()                  # Воспроизводим звук взрыва
+            expl = Explosion(sprite.rect.center)    # Создаём объект класса Explosion
+            all_sprites.add(expl)                   # Добавляем expl ко всем спрайтам
+            sprite.kill()                           # Уничтожаем спрайт
 
     scratch = pygame.sprite.groupcollide(mobs_sprites, players_sprites, False, False)
     if scratch:
         sprite = get_hit_sprite(scratch)            # Получаем спрайт из второй группы
         sprite.snd_scratch.play()                   # Воспроизводим звук скрежета
+        player.hp -= 1                              # Отнимаем у игрока единицу здоровья
+        if player.hp <= 0:                          # Если здоровья не осталось
+            run = False                             # Завершаем игру
 
     screen.fill(CYAN)                               # Заливка заднего фона
     all_sprites.draw(screen)                        # Отрисовываем все спрайты
+    draw_hp(screen, 50, 50, 200, 20, player)        # Отрисовываем полоску здоровья
     pygame.display.update()                         # Переворачиваем экран
 pygame.quit()                                       # Корректно завершаем игру
