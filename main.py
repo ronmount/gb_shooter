@@ -7,6 +7,7 @@ from enemy_top import EnemyTop
 from enemy_left import EnemyLeft
 from enemy_right import EnemyRight
 from enemy_bottom import EnemyBottom
+from bg import Bg
 
 pygame.init()                                       # Инициализируем модуль pygame
 
@@ -49,27 +50,52 @@ def draw_hp(screen, x, y, hp_width, hp_height, player):
     pygame.draw.rect(screen, white, rect, 1)        # Рисуем рамку
 
 
+def draw_text(screen, text, size, x, y, color):
+    font_name = pygame.font.match_font('arial')     # Выбираем тип шрифта для текста
+    font = pygame.font.Font(font_name, size)        # Шрифт выбранного типа и размера
+    text_image = font.render(text, True, color)     # Превращаем текст в картинку
+    text_rect = text_image.get_rect()               # Задаем рамку картинки с текстом
+    text_rect.center = (x, y)                       # Переносим текст в координаты
+    screen.blit(text_image, text_rect)              # Рисуем текст на экране
+
+
+def menu():
+    screen.blit(bg.image, bg.rect)                  # Включаем задний фон
+    draw_text(screen, game_name, 128, width / 2, height / 4, WHITE)
+    draw_text(screen, "Arrows for move, space - fire", 44, width / 2, height / 2, WHITE)
+    draw_text(screen, "Press any key to start", 36, width / 2, height * 3 / 4, WHITE)
+    pygame.display.flip()                           # Отображаем содержимое на экране
+    run = True
+    while run:
+        timer.tick(fps)                             # Тикаем игровой таймер
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:           # Событие закрытия окна
+                pygame.quit()
+            if event.type == pygame.KEYUP:          # Событие нажатия любой клавиши
+                run = False
+
+
+def new_mobs(count):
+    for i in range(count):
+        el = EnemyLeft()
+        er = EnemyRight()
+        et = EnemyTop()
+        eb = EnemyBottom()
+        all_sprites.add([el, er, et, eb])
+        mobs_sprites.add([el, er, et, eb])
+
+
 all_sprites = pygame.sprite.Group()                 # Создаем группу для спрайтов
 mobs_sprites = pygame.sprite.Group()                # Создаем группу для спрайтов мобов
 bullets_sprites = pygame.sprite.Group()             # Создаем группу для спрайтов пуль
 players_sprites = pygame.sprite.Group()             # Создаем группу для спрайтов игроков
 
+bg = Bg()                                           # Создаём объект класса Bg
+all_sprites.add(bg)                                 # Добавляем bg группу всех спрайтов
+
 player = Player()                                   # Создаём объект класса Player
 all_sprites.add(player)                             # Добавляем player группу всех спрайтов
 players_sprites.add(player)                         # Добавляем игрока в группу игроков
-
-enemy_bottom = EnemyBottom()                        # Создаём объект класса EnemyBottom
-all_sprites.add(enemy_bottom)                       # Добавляем enemy_bottom группу всех спрайтов
-mobs_sprites.add(enemy_bottom)                      # Добавляем enemy_bottom группу врагов
-enemy_right = EnemyRight()                          # Создаём объект класса EnemyRight
-all_sprites.add(enemy_right)                        # Добавляем enemy_right группу всех спрайтов
-mobs_sprites.add(enemy_right)                       # Добавляем enemy_bottom группу врагов
-enemy_left = EnemyLeft()                            # Создаём объект класса EnemyLeft
-all_sprites.add(enemy_left)                         # Добавляем enemy_left группу всех спрайтов
-mobs_sprites.add(enemy_left)                        # Добавляем enemy_bottom группу врагов
-enemy_top = EnemyTop()                              # Создаём объект класса EnemyTop
-all_sprites.add(enemy_top)                          # Добавляем enemy_top группу всех спрайтов
-mobs_sprites.add(enemy_top)                         # Добавляем enemy_bottom группу врагов
 
 timer = pygame.time.Clock()                         # Создаем таймер pygame
 
@@ -78,9 +104,20 @@ pygame.mixer.music.load(snd_dir + "music.mp3")
 pygame.mixer.music.set_volume(0.1)
 pygame.mixer.music.play(-1)
 
+level = 1
 run = True
+game_over = True
 
 while run:                                          # Начинаем бесконечный цикл
+    if game_over:                                   # Если игра завершена
+        level = 1                                   # Сбрасываем уровень до 1
+        player.__init__()                           # Пересоздаём игрока
+        for sprite in mobs_sprites:                 # Очищаем группу спрайтов
+            sprite.kill()
+        new_mobs(level)                             # Создаем мобов по уровню
+        game_over = False                           # Запускаем новую игру
+        menu()                                      # Рисуем меню
+
     timer.tick(fps)			                        # Контроль времени (обновление игры)
     all_sprites.update()                            # Выполняем действия всех спрайтов в группе
 
@@ -110,7 +147,11 @@ while run:                                          # Начинаем беск�
         sprite.snd_scratch.play()                   # Воспроизводим звук скрежета
         player.hp -= 1                              # Отнимаем у игрока единицу здоровья
         if player.hp <= 0:                          # Если здоровья не осталось
-            run = False                             # Завершаем игру
+            game_over = True                        # Завершаем игру
+
+    if len(mobs_sprites) == 0:                      # Если мобов в группе не осталось
+        level += 1                                  # Увеличиваем уровень
+        new_mobs(level)                             # Создаем новых мобов
 
     screen.fill(CYAN)                               # Заливка заднего фона
     all_sprites.draw(screen)                        # Отрисовываем все спрайты
