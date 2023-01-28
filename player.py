@@ -20,6 +20,13 @@ class Player(pygame.sprite.Sprite):
         self.angle = 0
         self.speed = 5
 
+        self.snd_expl = pygame.mixer.Sound(snd_dir + "expl.mp3")
+        self.snd_expl.set_volume(0.3)
+        self.snd_shoot = pygame.mixer.Sound(snd_dir + "shoot.mp3")
+        self.snd_shoot.set_volume(0.3)
+        self.snd_scratch = pygame.mixer.Sound(snd_dir + "scratch.mp3")
+        self.snd_scratch.set_volume(0.3)
+
     def rotate(self, rotate_speed):
         self.direction.rotate_ip(-rotate_speed)
         self.angle += rotate_speed
