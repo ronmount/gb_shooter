@@ -26,6 +26,9 @@ class EnemyTop(pygame.sprite.Sprite):
         self.speedx = random.randint(-5, 5)             # Мобы двигаются влево и вправо
         self.speedy = random.randint(1, 5)
 
+        self.snd_expl = pygame.mixer.Sound(snd_dir + "expl.mp3")
+        self.snd_expl.set_volume(0.3)
+
     def rotate(self, rotate_speed):
         self.direction.rotate_ip(-rotate_speed)
         self.angle += rotate_speed
