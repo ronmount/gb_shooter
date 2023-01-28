@@ -27,6 +27,9 @@ class Player(pygame.sprite.Sprite):
         self.snd_scratch = pygame.mixer.Sound(snd_dir + "scratch.mp3")
         self.snd_scratch.set_volume(0.3)
 
+        self.hp = 500                     # Здоровье игрока
+        self.max_hp = self.hp             # Максимальное здоровье
+
     def rotate(self, rotate_speed):
         self.direction.rotate_ip(-rotate_speed)
         self.angle += rotate_speed
